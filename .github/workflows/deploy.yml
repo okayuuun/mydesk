@@ -25,7 +25,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Update headlines from public RSS (best effort)
-        run: python scripts/update_news.py || echo 'RSS取得失敗: 最新ニュースなしの状態でサイトを公開します'
+        run: |
+          python scripts/update_news.py || echo 'RSS取得失敗: 最新ニュースなしの状態でサイトを公開します'
       - name: Build static public directory
         run: |
           mkdir -p _site/icons
