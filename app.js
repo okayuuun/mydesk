@@ -101,7 +101,7 @@ function taskGroupModal(id){
         if(!Array.isArray(state.taskGroups))state.taskGroups=[];
         const newGroup={id:uid(),name,description:v.description.trim()};
         state.taskGroups.push(newGroup);
-        taskGroupFilter=newGroup.id;
+        taskGroupFilter='all';
       }
       return true;
     });
@@ -121,6 +121,7 @@ function favLink(f){return `<a class="favtile" target="_blank" rel="noopener nor
 function home(){let open=state.tasks.filter(t=>t.status!=='完了');const wk=weekId(),n=state.checks.filter(c=>state.weekDone[wk]?.[c.id]).length,pinned=state.favorites.filter(f=>f.pin);return `<section class="welcome"><div><span class="welcome-day">YOUR DAILY WORKSPACE</span><h2>今日も、少しずつ進めよう。 ✳</h2><p>制作も、学校も、やることをひとつに。</p></div><button class="btn primary" data-act="newTask">＋ タスク追加</button></section><div class="stats"><div class="stat"><span class="label">タスク進捗</span><strong>${rate()}%</strong><small>${doneCount()} / ${state.tasks.length} 件完了</small></div><div class="stat"><span class="label">未完了</span><strong>${open.length}<small> 件</small></strong><small>あと少しずつ</small></div><div class="stat"><span class="label">今週のチェック</span><strong>${n}<small> / ${state.checks.length}</small></strong><small>${state.checks.length?Math.round(n/state.checks.length*100):0}% 達成</small></div></div>${newsHomeCard()}${writerQuickCard()}<div class="quick-feature-row"><button class="btn ghost" data-act="gotoGallery">▧ 画像を共有</button><button class="btn ghost" data-act="gotoPokemon">◉ ポケモン検索</button><button class="btn ghost" data-act="gotoDamage">⌗ ダメージ計算</button></div><div class="layout2"><div><section class="panel">${titlebar('今やること','gotoTasks')}<div class="progress"><div style="width:${rate()}%"></div></div>${open.slice(0,5).map(taskRow).join('')||'<div class="empty">すべて完了！ 新しいタスクを追加できます。</div>'}</section><section class="panel">${titlebar('クイックアクセス','gotoFav','リンクを管理')}<div class="mini-grid">${pinned.slice(0,6).map(favLink).join('')||'<p class="muted">お気に入りを固定するとここに表示されます。</p>'}</div></section></div><div><section class="panel">${titlebar('今週のチェック','gotoWeekly')}<p class="muted">${weekLabel(wk)} · ${n}/${state.checks.length} 完了</p><div class="progress"><div style="width:${state.checks.length?n/state.checks.length*100:0}%"></div></div>${state.checks.slice(0,6).map(c=>checkRow(c,wk)).join('')}</section><section class="panel">${titlebar('今日のひらめき','gotoIdeas','アイデアBOXへ')}<p class="muted">制作中のアイデアや、気になったことをメモ。</p>${button('＋ アイデアをメモ','newIdea','btn ghost')}</section></div></div>`}
 function tasks(){
   const groups=taskGroups();
+  if(taskGroupFilter!=='all'&&taskGroupFilter!=='ungrouped'&&!groups.some(g=>g.id===taskGroupFilter))taskGroupFilter='all';
   const matching=state.tasks.filter(t=>!filter||t.title.toLowerCase().includes(filter)||String(t.category||'').toLowerCase().includes(filter)||taskGroupName(t).toLowerCase().includes(filter));
   const ungrouped=matching.filter(t=>!knownTaskGroupId(t));
   const selected=groups.map(g=>({group:g,items:matching.filter(t=>knownTaskGroupId(t)===g.id)}));
