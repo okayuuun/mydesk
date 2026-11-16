@@ -4,10 +4,10 @@ const DAYS=['日','月','火','水','木','金','土'];
 const nav=[['home','⌂','ホーム'],['tasks','☑','タスク'],['weekly','▦','週間'],['favorites','↗','リンク'],['more','☷','その他']];
 const categories=['制作・開発','学校・連絡','デザイン','素材・音楽','学習','趣味','その他'];
 const defaultChecks=[['制作','今週の制作目標を確認'],['制作','ゲームを少しでも制作する'],['制作','動作テスト・バグ確認'],['制作','作業内容を記録する'],['学習','新しく学んだことを整理'],['学習','作品や参考資料を調べる'],['学校','課題・提出期限を確認'],['学校','Teamsの連絡を確認'],['整理','制作ファイルをバックアップ'],['整理','未完了タスクを見直す'],['週報','今週の成果をまとめる'],['週報','Teamsの週報を提出する']];
-function fresh(){return {taskEvents:[],tasks:[{id:uid(),title:'エフェクト・UIの調整',category:'ゲーム制作',priority:'中',status:'完了',due:'',finished:'2026-11-08',created:'2026-11-02'},{id:uid(),title:'3Dモデルの用意',category:'ゲーム制作',priority:'高',status:'未着手',due:'',finished:'',created:'2026-11-02'},{id:uid(),title:'シーン管理',category:'ゲーム制作',priority:'中',status:'未着手',due:'',finished:'',created:'2026-11-02'},{id:uid(),title:'音実装',category:'ゲーム制作',priority:'中',status:'未着手',due:'',finished:'',created:'2026-11-02'}],checks:defaultChecks.map(([cat,title])=>({id:uid(),cat,title})),weekDone:{},favorites:[{id:uid(),name:'Microsoft Teams',url:'https://teams.microsoft.com/',category:'学校・連絡',pin:true},{id:uid(),name:'GitHub',url:'https://github.com/',category:'制作・開発',pin:true},{id:uid(),name:'OneDrive',url:'https://onedrive.live.com/',category:'学校・連絡',pin:true},{id:uid(),name:'Canva',url:'https://www.canva.com/',category:'デザイン',pin:true},{id:uid(),name:'Microsoft To Do',url:'https://to-do.office.com/tasks/',category:'学校・連絡',pin:false}],logs:[{id:uid(),date:'2026-11-08',type:'対応',title:'エフェクト・UIの調整',detail:'画面演出とUIを調整した'},{id:uid(),date:'2026-11-08',type:'できなかった',title:'3Dモデルの用意',detail:''},{id:uid(),date:'2026-11-08',type:'できなかった',title:'シーン管理',detail:''},{id:uid(),date:'2026-11-08',type:'できなかった',title:'音実装',detail:''},{id:uid(),date:'2026-11-08',type:'その他',title:'ゲームフリークのCGの話が面白かった',detail:''}],ideas:[]};}
+function fresh(){return {taskGroups:[],taskEvents:[],tasks:[{id:uid(),title:'エフェクト・UIの調整',category:'ゲーム制作',priority:'中',status:'完了',due:'',finished:'2026-11-08',created:'2026-11-02'},{id:uid(),title:'3Dモデルの用意',category:'ゲーム制作',priority:'高',status:'未着手',due:'',finished:'',created:'2026-11-02'},{id:uid(),title:'シーン管理',category:'ゲーム制作',priority:'中',status:'未着手',due:'',finished:'',created:'2026-11-02'},{id:uid(),title:'音実装',category:'ゲーム制作',priority:'中',status:'未着手',due:'',finished:'',created:'2026-11-02'}],checks:defaultChecks.map(([cat,title])=>({id:uid(),cat,title})),weekDone:{},favorites:[{id:uid(),name:'Microsoft Teams',url:'https://teams.microsoft.com/',category:'学校・連絡',pin:true},{id:uid(),name:'GitHub',url:'https://github.com/',category:'制作・開発',pin:true},{id:uid(),name:'OneDrive',url:'https://onedrive.live.com/',category:'学校・連絡',pin:true},{id:uid(),name:'Canva',url:'https://www.canva.com/',category:'デザイン',pin:true},{id:uid(),name:'Microsoft To Do',url:'https://to-do.office.com/tasks/',category:'学校・連絡',pin:false}],logs:[{id:uid(),date:'2026-11-08',type:'対応',title:'エフェクト・UIの調整',detail:'画面演出とUIを調整した'},{id:uid(),date:'2026-11-08',type:'できなかった',title:'3Dモデルの用意',detail:''},{id:uid(),date:'2026-11-08',type:'できなかった',title:'シーン管理',detail:''},{id:uid(),date:'2026-11-08',type:'できなかった',title:'音実装',detail:''},{id:uid(),date:'2026-11-08',type:'その他',title:'ゲームフリークのCGの話が面白かった',detail:''}],ideas:[]};}
 function uid(){return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function load(){try{const v=JSON.parse(localStorage.getItem(STORE));return v&&Array.isArray(v.tasks)&&Array.isArray(v.favorites)?v:fresh()}catch{return fresh()}}
-let state=load(),page='home',filter='',weeklyShift=0,reportShift=0;
+let state=load(),page='home',filter='',weeklyShift=0,reportShift=0,taskGroupFilter='all';
 function save(){try{localStorage.setItem(STORE,JSON.stringify(state));markSyncDirty()}catch{toast('保存できませんでした。ブラウザの空き容量をご確認ください。')}}
 if(!localStorage.getItem(STORE))save();
 function esc(t){return String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -59,10 +59,88 @@ function setPage(p){page=p;filter='';render();window.scrollTo(0,0);if(p==='galle
 function toast(text){let t=document.getElementById('toast');t.textContent=text;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),2600)}
 function button(text,fn,cls='btn primary'){return `<button class="${cls}" data-act="${fn}">${text}</button>`}
 function titlebar(text,act,actLabel){return `<div class="panelhead"><h2>${text}</h2>${act?`<button class="linkbtn" data-act="${act}">${actLabel||'すべて見る'} →</button>`:''}</div>`}
-function taskRow(t){return `<div class="taskrow"><input type="checkbox" class="tick" data-checktask="${t.id}" ${t.status==='完了'?'checked':''} aria-label="${esc(t.title)}を完了にする"><div><strong class="${t.status==='完了'?'done':''}">${esc(t.title)}</strong><small>${esc(t.category||'その他')} · ${esc(t.status)} · ${t.due?'期限 '+dateLabel(t.due):'期限なし'}</small></div><span class="chip ${t.priority==='高'?'high':t.priority==='中'?'medium':'low'}">${esc(t.priority)}</span><div class="actions"><button class="tiny" data-act="editTask" data-id="${t.id}">編集</button><button class="tiny danger" data-act="deleteTask" data-id="${t.id}">削除</button></div></div>`}
+// Optional task folders (game / project). Older tasks without groupId remain ungrouped.
+function taskGroups(){return Array.isArray(state.taskGroups)?state.taskGroups:[]}
+function knownTaskGroupId(task){
+  const id=String(task.groupId||'');
+  return taskGroups().some(g=>g.id===id)?id:'';
+}
+function taskGroupName(task){
+  const id=knownTaskGroupId(task);
+  return id?(taskGroups().find(g=>g.id===id)?.name||'未分類'):'未分類';
+}
+function groupProgress(items){return items.length?Math.round(items.filter(t=>t.status==='完了').length/items.length*100):0}
+function taskGroupCard(group,items){
+  const ungrouped=!group,groupId=ungrouped?'ungrouped':group.id;
+  const done=items.filter(t=>t.status==='完了').length;
+  const name=ungrouped?'未分類':group.name;
+  const editBtns=ungrouped?'':`<button class="tiny" data-act="editTaskGroup" data-id="${esc(group.id)}">名前変更</button><button class="tiny danger" data-act="deleteTaskGroup" data-id="${esc(group.id)}">削除</button>`;
+  return `<section class="panel task-group-panel">
+    <div class="task-group-heading">
+      <div class="task-group-label"><span class="task-group-symbol">${ungrouped?'▤':'▣'}</span><div>
+        <h2>${esc(name)}</h2><small>${done} / ${items.length} 件完了 · 進捗 ${groupProgress(items)}%${ungrouped?' · どのまとまりにも所属していないタスク':''}</small>
+        ${!ungrouped&&group.description?`<p class="muted task-group-description">${esc(group.description)}</p>`:''}
+      </div></div>
+      <div class="task-group-actions"><button class="tiny group-add" data-act="newTaskForGroup" data-id="${esc(groupId)}">＋ タスク追加</button>${editBtns}</div>
+    </div>
+    <div class="progress task-group-progress"><div style="width:${groupProgress(items)}%"></div></div>
+    <div>${items.map(taskRow).join('')||'<p class="empty">タスクはまだありません。</p>'}</div>
+  </section>`;
+}
+function taskGroupModal(id){
+  const group=taskGroups().find(g=>g.id===id);
+  openModal(group?'まとまりを編集':'新しいまとまりを作成',
+    formField('まとまり名（ゲーム・作品名など）','name','text',group?.name||'','required maxlength="80"')
+    +formField('説明（任意）','description','textarea',group?.description||'','maxlength="300"'),
+    v=>{
+      const name=v.name.trim();
+      if(!name)return toast('まとまり名を入力してください');
+      if(taskGroups().some(g=>g.id!==id&&g.name.trim().toLowerCase()===name.toLowerCase()))return toast('同じ名前のまとまりがすでにあります');
+      if(group)Object.assign(group,{name,description:v.description.trim()});
+      else{
+        if(!Array.isArray(state.taskGroups))state.taskGroups=[];
+        const newGroup={id:uid(),name,description:v.description.trim()};
+        state.taskGroups.push(newGroup);
+        taskGroupFilter=newGroup.id;
+      }
+      return true;
+    });
+}
+function deleteTaskGroup(id){
+  const group=taskGroups().find(g=>g.id===id);
+  if(!group)return;
+  const n=state.tasks.filter(t=>t.groupId===id).length;
+  if(!confirm(`「${group.name}」を削除しますか？\n所属タスク${n}件は「未分類」に移動します。タスク自体は削除されません。`))return;
+  state.tasks.forEach(t=>{if(t.groupId===id)t.groupId=''});
+  state.taskGroups=taskGroups().filter(g=>g.id!==id);
+  taskGroupFilter='all';save();render();
+  toast('まとまりを削除しました（タスクは残っています）');
+}
+function taskRow(t){return `<div class="taskrow"><input type="checkbox" class="tick" data-checktask="${t.id}" ${t.status==='完了'?'checked':''} aria-label="${esc(t.title)}を完了にする"><div><strong class="${t.status==='完了'?'done':''}">${esc(t.title)}</strong><small>${esc(t.category||'その他')} · ${esc(t.status)} · ${t.due?'期限 '+dateLabel(t.due):'期限なし'}${knownTaskGroupId(t)?' · '+esc(taskGroupName(t)):''}</small></div><span class="chip ${t.priority==='高'?'high':t.priority==='中'?'medium':'low'}">${esc(t.priority)}</span><div class="actions"><button class="tiny" data-act="editTask" data-id="${t.id}">編集</button><button class="tiny danger" data-act="deleteTask" data-id="${t.id}">削除</button></div></div>`}
 function favLink(f){return `<a class="favtile" target="_blank" rel="noopener noreferrer" href="${esc(f.url)}"><span class="favicon">${esc(f.name.slice(0,1))}</span><span>${esc(f.name)}<small>${esc(f.category)}</small></span></a>`}
 function home(){let open=state.tasks.filter(t=>t.status!=='完了');const wk=weekId(),n=state.checks.filter(c=>state.weekDone[wk]?.[c.id]).length,pinned=state.favorites.filter(f=>f.pin);return `<section class="welcome"><div><span class="welcome-day">YOUR DAILY WORKSPACE</span><h2>今日も、少しずつ進めよう。 ✳</h2><p>制作も、学校も、やることをひとつに。</p></div><button class="btn primary" data-act="newTask">＋ タスク追加</button></section><div class="stats"><div class="stat"><span class="label">タスク進捗</span><strong>${rate()}%</strong><small>${doneCount()} / ${state.tasks.length} 件完了</small></div><div class="stat"><span class="label">未完了</span><strong>${open.length}<small> 件</small></strong><small>あと少しずつ</small></div><div class="stat"><span class="label">今週のチェック</span><strong>${n}<small> / ${state.checks.length}</small></strong><small>${state.checks.length?Math.round(n/state.checks.length*100):0}% 達成</small></div></div>${newsHomeCard()}${writerQuickCard()}<div class="quick-feature-row"><button class="btn ghost" data-act="gotoGallery">▧ 画像を共有</button><button class="btn ghost" data-act="gotoPokemon">◉ ポケモン検索</button><button class="btn ghost" data-act="gotoDamage">⌗ ダメージ計算</button></div><div class="layout2"><div><section class="panel">${titlebar('今やること','gotoTasks')}<div class="progress"><div style="width:${rate()}%"></div></div>${open.slice(0,5).map(taskRow).join('')||'<div class="empty">すべて完了！ 新しいタスクを追加できます。</div>'}</section><section class="panel">${titlebar('クイックアクセス','gotoFav','リンクを管理')}<div class="mini-grid">${pinned.slice(0,6).map(favLink).join('')||'<p class="muted">お気に入りを固定するとここに表示されます。</p>'}</div></section></div><div><section class="panel">${titlebar('今週のチェック','gotoWeekly')}<p class="muted">${weekLabel(wk)} · ${n}/${state.checks.length} 完了</p><div class="progress"><div style="width:${state.checks.length?n/state.checks.length*100:0}%"></div></div>${state.checks.slice(0,6).map(c=>checkRow(c,wk)).join('')}</section><section class="panel">${titlebar('今日のひらめき','gotoIdeas','アイデアBOXへ')}<p class="muted">制作中のアイデアや、気になったことをメモ。</p>${button('＋ アイデアをメモ','newIdea','btn ghost')}</section></div></div>`}
-function tasks(){let list=state.tasks.filter(t=>!filter||t.title.toLowerCase().includes(filter)||t.category.toLowerCase().includes(filter));return `<div class="section-tools"><input id="searchTasks" class="input search grow" placeholder="タスクを検索…" value="${esc(filter)}">${button('＋ 新しいタスク','newTask')}${button('Teams週報を確認','gotoLogs','btn ghost')}</div><div class="stats"><div class="stat"><span class="label">全タスク</span><strong>${state.tasks.length}</strong></div><div class="stat"><span class="label">完了</span><strong>${doneCount()}</strong></div><div class="stat"><span class="label">進捗率</span><strong>${rate()}%</strong></div></div><section class="panel">${titlebar('タスク一覧')}<div class="progress"><div style="width:${rate()}%"></div></div><div id="taskList">${list.map(taskRow).join('')||'<p class="empty">タスクがありません。</p>'}</div></section>`}
+function tasks(){
+  const groups=taskGroups();
+  const matching=state.tasks.filter(t=>!filter||t.title.toLowerCase().includes(filter)||String(t.category||'').toLowerCase().includes(filter)||taskGroupName(t).toLowerCase().includes(filter));
+  const ungrouped=matching.filter(t=>!knownTaskGroupId(t));
+  const selected=groups.map(g=>({group:g,items:matching.filter(t=>knownTaskGroupId(t)===g.id)}));
+  const cards=selected.filter(g=>taskGroupFilter==='all'||taskGroupFilter===g.group.id)
+    .concat(taskGroupFilter==='all'||taskGroupFilter==='ungrouped'?[{group:null,items:ungrouped}]:[]);
+  const groupChips=[
+    ['all','すべて',state.tasks.length],
+    ...groups.map(g=>[g.id,g.name,state.tasks.filter(t=>knownTaskGroupId(t)===g.id).length]),
+    ['ungrouped','未分類',state.tasks.filter(t=>!knownTaskGroupId(t)).length]
+  ].map(([id,label,count])=>`<button class="task-group-chip ${taskGroupFilter===id?'selected':''}" data-act="filterTaskGroup" data-id="${esc(id)}" title="${esc(label)}">${esc(label)} <span>${count}</span></button>`).join('');
+  const header=`<div class="section-tools"><input id="searchTasks" class="input search grow" placeholder="タスク・作品名で検索…" value="${esc(filter)}">${button('＋ 新しいタスク','newTask')}${button('＋ まとまりを作成','newTaskGroup','btn ghost')}${button('Teams週報を確認','gotoLogs','btn ghost')}</div>
+    <div class="stats"><div class="stat"><span class="label">全タスク</span><strong>${state.tasks.length}</strong></div><div class="stat"><span class="label">完了</span><strong>${doneCount()}</strong></div><div class="stat"><span class="label">進捗率</span><strong>${rate()}%</strong></div></div>`;
+  const guide=`<section class="task-group-toolbar"><p>ゲーム・作品ごとにタスクを整理できます。所属しないタスクは「未分類」のまま管理できます。</p><div class="task-group-filters">${groupChips}</div></section>`;
+  if(!groups.length){
+    // Preserve the familiar flat list when the user has never created a group.
+    return header+`<section class="panel">${titlebar('タスク一覧')}<div class="progress"><div style="width:${rate()}%"></div></div><p class="muted">必要になったら「＋ まとまりを作成」からゲーム別に整理できます。</p><div id="taskList">${matching.map(taskRow).join('')||'<p class="empty">タスクがありません。</p>'}</div></section>`;
+  }
+  const visible=cards.filter(c=>!filter||c.items.length||taskGroupFilter!=='all');
+  return header+guide+`<div id="taskList">${visible.map(c=>taskGroupCard(c.group,c.items)).join('')||'<section class="panel"><p class="empty">条件に合うタスクがありません。</p></section>'}</div>`;
+}
 function checkRow(c,w){return `<label class="checkrow"><input type="checkbox" class="tick" data-checkweek="${c.id}" ${state.weekDone[w]?.[c.id]?'checked':''}><div><strong class="${state.weekDone[w]?.[c.id]?'done':''}">${esc(c.title)}</strong><small>${esc(c.cat)}</small></div>${page==='weekly'?`<button class="tiny danger" type="button" data-act="removeCheck" data-id="${c.id}">削除</button>`:''}</label>`}
 function weekly(){const w=weekId(weeklyShift),n=state.checks.filter(c=>state.weekDone[w]?.[c.id]).length,group=[...new Set(state.checks.map(c=>c.cat))];return `<div class="section-tools">${button('＋ チェック項目','newCheck')}<button class="btn ghost" data-act="resetWeek">この週を未完了に戻す</button></div><section class="panel"><div class="weeknav"><button data-act="prevWeek">←</button><strong>${weekLabel(w)}</strong><button data-act="nextWeek">→</button><button data-act="currentWeek">今週</button></div><div class="panelhead"><h2>今週の習慣・定期タスク</h2><span class="daytag">${n} / ${state.checks.length} 完了</span></div><div class="progress"><div style="width:${state.checks.length?100*n/state.checks.length:0}%"></div></div>${group.map(g=>`<div class="checkgroup"><h3>${esc(g)}</h3>${state.checks.filter(c=>c.cat===g).map(c=>checkRow(c,w)).join('')}</div>`).join('')||'<div class="empty">チェック項目を追加してみましょう。</div>'}</section><p class="muted">週の記録は毎週月曜日で区切られ、前週のチェック状態は引き継がれません。過去の記録は残ります。</p>`}
 function favorites(){const fs=state.favorites.filter(f=>!filter||f.name.toLowerCase().includes(filter)||f.category.toLowerCase().includes(filter));return `<div class="section-tools"><input id="searchFav" class="input search grow" placeholder="サイト名・カテゴリで検索" value="${esc(filter)}">${button('＋ サイトを登録','newFav')}</div><section class="panel">${titlebar('固定したサイト')}<div class="mini-grid">${fs.filter(f=>f.pin).map(favLink).join('')||'<div class="empty">サイトの編集画面で「ホームに固定」を選んでください。</div>'}</div></section><section class="panel">${titlebar('サイト一覧')}<div id="favoriteList">${fs.map(f=>`<div class="favorow"><span class="favicon">${esc(f.name.slice(0,1))}</span><div><strong>${esc(f.name)} ${f.pin?'★':''}</strong><small>${esc(f.category)} · ${esc(f.url)}</small></div><div class="actions"><a class="tiny" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">開く ↗</a><button class="tiny" data-act="editFav" data-id="${f.id}">編集</button><button class="tiny danger" data-act="deleteFav" data-id="${f.id}">削除</button></div></div>`).join('')||'<p class="empty">サイトがありません。</p>'}</div></section>`}
@@ -186,11 +264,19 @@ function formField(label,name,type='text',value='',extra=''){return `<div class=
 let submitModal=null;
 function openModal(title,html,action){document.getElementById('modalTitle').textContent=title;document.getElementById('modalFields').innerHTML=html;submitModal=action;document.getElementById('modal').showModal();}
 function values(){return Object.fromEntries(new FormData(document.getElementById('modalForm')))}
-function taskModal(id){
-  const task=state.tasks.find(t=>t.id===id)||{title:'',category:'ゲーム制作',priority:'中',status:'未着手',due:''};
-  const fields=formField('タスク名','title','text',task.title,'required maxlength="160"')+formField('カテゴリ','category','text',task.category)+`<div class="fieldrow">${formField('優先度','priority','select',task.priority,'高|中|低')}${formField('状態','status','select',task.status,'未着手|進行中|確認待ち|保留|完了')}</div>`+formField('期限','due','date',task.due);
+function taskModal(id,defaultGroupId=''){
+  const task=state.tasks.find(t=>t.id===id)||{title:'',category:'ゲーム制作',priority:'中',status:'未着手',due:'',groupId:defaultGroupId};
+  const selectedGroup=knownTaskGroupId(task);
+  const groupOptions=['<option value="">未分類（まとまりなし）</option>',...taskGroups().map(g=>`<option value="${esc(g.id)}" ${selectedGroup===g.id?'selected':''}>${esc(g.name)}</option>`)].join('');
+  const groupSelect=`<div class="field"><label for="f_groupId">まとまり（任意）</label><select id="f_groupId" name="groupId">${groupOptions}</select><p class="muted">ゲームや作品別に分けたい場合だけ選択します。</p></div>`;
+  const fields=formField('タスク名','title','text',task.title,'required maxlength="160"')
+    +groupSelect
+    +formField('カテゴリ','category','text',task.category)
+    +`<div class="fieldrow">${formField('優先度','priority','select',task.priority,'高|中|低')}${formField('状態','status','select',task.status,'未着手|進行中|確認待ち|保留|完了')}</div>`
+    +formField('期限','due','date',task.due);
   openModal(id?'タスクを編集':'タスクを追加',fields,v=>{
     if(!v.title.trim())return toast('タスク名を入力してください');
+    v.groupId=taskGroups().some(g=>g.id===v.groupId)?v.groupId:'';
     if(id){
       preserveTaskHistory(task);
       const oldStatus=task.status;
@@ -210,7 +296,7 @@ function checkModal(){openModal('毎週のチェック項目を追加',formField
 function logModal(){openModal('作業ログを追加',formField('日付','date','date',todayISO())+formField('週報の分類','type','select','対応','対応|できなかった|その他')+formField('内容・タスク名','title','text','','required maxlength="160"')+formField('補足','detail','textarea',''),v=>{if(!v.title.trim()||!v.date)return toast('日付と内容を入力してください');state.logs.push({...v,id:uid()});return true})}
 function ideaModal(){openModal('アイデアをメモ',formField('タイトル','title','text','','required maxlength="160"')+formField('分類','category','select','ゲーム企画','ゲーム企画|改善案|バグ|デザイン|学習|その他')+formField('メモ','detail','textarea',''),v=>{if(!v.title.trim())return toast('タイトルを入力してください');state.ideas.push({...v,date:todayISO(),id:uid()});return true})}
 function removeFrom(arr,id){let i=arr.findIndex(x=>x.id===id);if(i>=0)arr.splice(i,1)}
-const actions={newTask:()=>taskModal(),editTask:id=>taskModal(id),deleteTask:id=>{if(confirm('このタスクを削除しますか？')){const t=state.tasks.find(x=>x.id===id);if(t)preserveTaskHistory(t);removeFrom(state.tasks,id);save();render()}},newFav:()=>favModal(),editFav:id=>favModal(id),deleteFav:id=>{if(confirm('このサイトを削除しますか？')){removeFrom(state.favorites,id);save();render()}},newCheck:checkModal,removeCheck:id=>{if(confirm('このチェック項目を削除しますか？')){removeFrom(state.checks,id);for(const done of Object.values(state.weekDone))delete done[id];save();render()}},newLog:logModal,deleteLog:id=>{if(confirm('この作業ログを削除しますか？')){removeFrom(state.logs,id);save();render()}},newIdea:ideaModal,deleteIdea:id=>{if(confirm('このメモを削除しますか？')){removeFrom(state.ideas,id);save();render()}},prevWeek:()=>{weeklyShift--;render()},nextWeek:()=>{weeklyShift++;render()},currentWeek:()=>{weeklyShift=0;render()},prevReport:()=>{reportShift--;render()},nextReport:()=>{reportShift++;render()},currentReport:()=>{reportShift=0;render()},resetWeek:()=>{if(confirm('表示中の週のチェックをすべて未完了に戻しますか？')){state.weekDone[weekId(weeklyShift)]={};save();render()}},copyReport:()=>copyWeeklyReport(),openTeams:()=>window.open('https://teams.microsoft.com/','_blank','noopener'),export:()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify({app:'MyDesk',version:1,exportedAt:new Date().toISOString(),data:state},null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download=`mydesk-backup-${todayISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('バックアップを書き出しました')},import:()=>document.getElementById('importFile').click()};
+const actions={newTask:()=>taskModal(null,taskGroupFilter!=='all'&&taskGroupFilter!=='ungrouped'?taskGroupFilter:''),newTaskForGroup:id=>taskModal(null,id==='ungrouped'?'':id),newTaskGroup:()=>taskGroupModal(),editTaskGroup:id=>taskGroupModal(id),deleteTaskGroup:id=>deleteTaskGroup(id),filterTaskGroup:id=>{taskGroupFilter=id;render()},editTask:id=>taskModal(id),deleteTask:id=>{if(confirm('このタスクを削除しますか？')){const t=state.tasks.find(x=>x.id===id);if(t)preserveTaskHistory(t);removeFrom(state.tasks,id);save();render()}},newFav:()=>favModal(),editFav:id=>favModal(id),deleteFav:id=>{if(confirm('このサイトを削除しますか？')){removeFrom(state.favorites,id);save();render()}},newCheck:checkModal,removeCheck:id=>{if(confirm('このチェック項目を削除しますか？')){removeFrom(state.checks,id);for(const done of Object.values(state.weekDone))delete done[id];save();render()}},newLog:logModal,deleteLog:id=>{if(confirm('この作業ログを削除しますか？')){removeFrom(state.logs,id);save();render()}},newIdea:ideaModal,deleteIdea:id=>{if(confirm('このメモを削除しますか？')){removeFrom(state.ideas,id);save();render()}},prevWeek:()=>{weeklyShift--;render()},nextWeek:()=>{weeklyShift++;render()},currentWeek:()=>{weeklyShift=0;render()},prevReport:()=>{reportShift--;render()},nextReport:()=>{reportShift++;render()},currentReport:()=>{reportShift=0;render()},resetWeek:()=>{if(confirm('表示中の週のチェックをすべて未完了に戻しますか？')){state.weekDone[weekId(weeklyShift)]={};save();render()}},copyReport:()=>copyWeeklyReport(),openTeams:()=>window.open('https://teams.microsoft.com/','_blank','noopener'),export:()=>{const a=document.createElement('a'),blob=new Blob([JSON.stringify({app:'MyDesk',version:1,exportedAt:new Date().toISOString(),data:state},null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download=`mydesk-backup-${todayISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('バックアップを書き出しました')},import:()=>document.getElementById('importFile').click()};
 for(const [from,to] of Object.entries({gotoTasks:'tasks',gotoWeekly:'weekly',gotoFav:'favorites',gotoLogs:'logs',gotoIdeas:'ideas',gotoApps:'apps',gotoSettings:'settings',gotoNews:'news',gotoWriter:'writer',gotoGallery:'gallery',gotoPokemon:'pokemon',gotoDamage:'damage'})){actions[from]=()=>setPage(to)}
 document.addEventListener('click',e=>{const node=e.target.closest('[data-page],[data-act]');if(!node)return;const pg=node.dataset.page;if(pg){setPage(pg);return}const act=node.dataset.act;if(actions[act]){e.preventDefault();actions[act](node.dataset.id)}});
 document.addEventListener('change',async e=>{if(e.target.matches('[data-checktask]')){const t=state.tasks.find(x=>x.id===e.target.dataset.checktask);if(t){setTaskStatus(t,e.target.checked?'完了':'未着手');save();render()}}else if(e.target.matches('[data-checkweek]')){const w=weekId(weeklyShift),id=e.target.dataset.checkweek;state.weekDone[w]??={};state.weekDone[w][id]=e.target.checked;save();render()}else if(e.target.id==='importFile'){const file=e.target.files[0];if(!file)return;try{if(file.size>5_000_000)throw Error('ファイルが大きすぎます');const obj=JSON.parse(await file.text());const data=obj.data;if(obj.app!=='MyDesk'||!data||!Array.isArray(data.tasks)||!Array.isArray(data.favorites)||!Array.isArray(data.checks)||!Array.isArray(data.logs)||!Array.isArray(data.ideas)||!data.weekDone||typeof data.weekDone!=='object')throw Error('MyDeskのバックアップファイルではありません');if(!confirm('現在のすべてのデータをバックアップの内容で置き換えますか？'))return;state=data;save();render();toast('読み込みが完了しました')}catch(err){toast('読み込み失敗：'+err.message)}e.target.value=''}});
