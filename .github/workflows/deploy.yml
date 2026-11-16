@@ -30,7 +30,7 @@ jobs:
       - name: Build static public directory
         run: |
           mkdir -p _site/icons
-          cp index.html style.css app.js features.js extras.js manifest.webmanifest sw.js news.json _site/
+          cp index.html style.css app.js features.js extras.js task-batch-import.js manifest.webmanifest sw.js news.json _site/
           cp icons/*.png _site/icons/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
