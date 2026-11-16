@@ -37,3 +37,33 @@
 .sidebar nav::-webkit-scrollbar{width:7px}
 .sidebar nav::-webkit-scrollbar-thumb{background:#c4d1bc;border-radius:8px}
 .sidebar nav::-webkit-scrollbar-track{background:transparent}
+
+/* Task groups: optional project folders for parallel game production. */
+.task-group-toolbar{margin:2px 0 18px}
+.task-group-toolbar>p{color:#7c867b;font-size:12px;line-height:1.7;margin:0 0 12px}
+.task-group-filters{display:flex;flex-wrap:wrap;gap:8px}
+.task-group-chip{display:inline-flex;align-items:center;gap:7px;max-width:100%;background:#fff;border:1px solid #e0e7db;color:#5c6e56;border-radius:25px;padding:9px 13px;font-size:12px;font-weight:750;overflow-wrap:anywhere;text-align:left}
+.task-group-chip>span{font-size:10px;font-weight:800;background:#edf1e9;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.task-group-chip.selected{background:#334e3a;color:#fff;border-color:#334e3a}
+.task-group-chip.selected>span{background:#56745e;color:#fff}
+.task-group-panel{margin-bottom:18px}
+.task-group-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.task-group-label{display:flex;align-items:center;min-width:0;gap:12px;flex:1}
+.task-group-label>div{min-width:0}
+.task-group-label h2{font-size:17px;line-height:1.4;overflow-wrap:anywhere;margin:0 0 4px}
+.task-group-label small{color:#7e8a7b;font-size:11px;line-height:1.5}
+.task-group-symbol{font-size:19px;display:grid;place-items:center;background:#e9efdf;color:#608452;width:40px;height:40px;border-radius:11px;flex:none}
+.task-group-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.task-group-actions .tiny{padding:9px 10px}
+.task-group-actions .group-add{background:#e7efe0;color:#55704d;font-weight:800}
+.task-group-progress{margin:17px 0 8px}
+.task-group-description{margin:5px 0 0;overflow-wrap:anywhere}
+@media(max-width:720px){
+  .task-group-panel{padding:17px}
+  .task-group-chip{font-size:11px;padding:8px 10px}
+  .task-group-heading{align-items:flex-start}
+  .task-group-label{flex-basis:100%}
+  .task-group-actions{width:100%;gap:6px}
+  .task-group-actions .tiny{flex:1;min-width:80px}
+  .task-group-toolbar{margin-bottom:13px}
+}
